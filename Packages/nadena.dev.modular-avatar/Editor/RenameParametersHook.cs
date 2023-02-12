@@ -56,13 +56,26 @@ namespace nadena.dev.modular_avatar.core.editor
             expParams = Object.Instantiate(expParams);
             _context.SaveAsset(expParams);
 
+            var replacedParams = new HashSet<string>();
             var knownParams = expParams.parameters.Select(p => p.name).ToImmutableHashSet();
-            var parameters = expParams.parameters.ToList();
+            var parameters = expParams.parameters.Select(p =>
+            {
+                if (_syncedParams.ContainsKey(p.name))
+                {
+                    replacedParams.Add(p.name);
+                    return _syncedParams[p.name];
+                }
+                return p;
+            }).ToList();
 
             foreach (var kvp in _syncedParams)
             {
                 var name = kvp.Key;
                 var param = kvp.Value;
+                if (replacedParams.Contains(name))
+                {
+                    continue;
+                }
                 if (!knownParams.Contains(name))
                 {
                     parameters.Add(param);
